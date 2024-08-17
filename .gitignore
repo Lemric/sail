@@ -7,3 +7,4 @@ tests/phpunit.xml
 tests/docker-compose.yml
 tests/.devcontainer
 tests/Fixtures/cache
+tests/Fixtures/var
