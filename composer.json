@@ -19,9 +19,10 @@
   ],
   "require": {
     "php": "^8.0",
+    "laravel/prompts": "^v0.1.24",
     "symfony/console": "^6.0|^7.0",
-    "symfony/yaml": "^6.0|^7.0",
-    "laravel/prompts": "^v0.1.24"
+    "symfony/dotenv": "^6.0|^7.0",
+    "symfony/yaml": "^6.0|^7.0"
   },
   "autoload": {
     "psr-4": {

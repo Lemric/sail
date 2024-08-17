@@ -133,93 +133,97 @@ trait InteractsWithDockerComposeServices
             $compose['services']['selenium']['image'] = 'seleniarm/standalone-chromium';
         }
 
+        $compose = $this->replaceEnvVariables($compose);
+
         file_put_contents($this->projectDirectory . '/docker-compose.yml', Yaml::dump($compose, Yaml::DUMP_OBJECT_AS_MAP));
+    }
+
+    protected function updateDataString(string $contents, string $data): ?string
+    {
+        $pieces = explode("\n", trim($data));
+        $startMark = trim(reset($pieces));
+        $endMark = trim(end($pieces));
+
+        if (!str_contains($contents, $startMark) || !str_contains($contents, $endMark)) {
+            return null;
+        }
+
+        $pattern = '/'.preg_quote($startMark, '/').'.*?'.preg_quote($endMark, '/').'/s';
+
+        return preg_replace($pattern, trim($data), $contents);
     }
 
     /**
      * Replace the Host environment variables in the app's .env file.
      *
-     * @param  array  $services
-     * @return void
+     * @param array $compose
+     * @return array
      */
-    protected function replaceEnvVariables(array $services): void
+    protected function replaceEnvVariables(array $compose): array
     {
-        $environment = file_get_contents(realpath($this->projectDirectory . '/.env'));
+        foreach ($compose['services'] as $name => $service) {
+            switch ($name) {
+                case 'mysql':
+                    $compose['services']['symfony.test']['environment']['DATABASE_URL'] =
+                        sprintf('mysql://%s:%s@mysql:3306/%s?serverVersion=8.0.32&charset=utf8mb4',
+                            $service['environment']['MYSQL_USER'],
+                            $service['environment']['MYSQL_PASSWORD'],
+                            $service['environment']['MYSQL_DATABASE']
+                        );
+                    break;
+                case 'mariadb':
+                    $compose['services']['symfony.test']['environment']['DATABASE_URL'] =
+                        sprintf('mysql://%s:%s@mariadb:3306/%s?serverVersion=10.11.2-MariaDB&charset=utf8mb4',
+                            $service['environment']['MYSQL_USER'],
+                            $service['environment']['MYSQL_PASSWORD'],
+                            $service['environment']['MYSQL_DATABASE']
+                        );
+                    break;
+                case 'pgsql':
+                    $compose['services']['symfony.test']['environment']['DATABASE_URL'] =
+                        sprintf('postgresql://%s:%s@pgsql:5432/%s/app?serverVersion=16&charset=utf8',
+                        $service['environment']['POSTGRES_USER'],
+                        $service['environment']['POSTGRES_PASSWORD'],
+                        $service['environment']['POSTGRES_DB'],
+                    );
+                    break;
+                case 'redis':
+                    $compose['services']['symfony.test']['environment']['REDIS_DSN'] = 'redis://redis';
+                    break;
+                case 'memcached':
+                    $compose['services']['symfony.test']['environment']['MEMCACHED_HOST'] = 'memcached';
+                    break;
+                case 'meilisearch':
+                    $compose['services']['symfony.test']['environment']['SCOUT_DRIVER'] = 'meilisearch';
+                    $compose['services']['symfony.test']['environment']['MEILISEARCH_HOST'] = 'http://meilisearch:7700';
+                    $compose['services']['symfony.test']['environment']['MEILISEARCH_NO_ANALYTICS'] = 'false';
 
-        if (in_array('mysql', $services) ||
-            in_array('mariadb', $services) ||
-            in_array('pgsql', $services)) {
-            $defaults = [
-                '# DB_HOST=127.0.0.1',
-                '# DB_PORT=3306',
-                '# DB_DATABASE=symfony',
-                '# DB_USERNAME=root',
-                '# DB_PASSWORD=',
-            ];
+                    break;
+                case 'typesense':
+                    $compose['services']['symfony.test']['environment']['SCOUT_DRIVER'] = 'typesense';
+                    $compose['services']['symfony.test']['environment']['TYPESENSE_HOST'] = 'typesense';
+                    $compose['services']['symfony.test']['environment']['TYPESENSE_PORT'] = '8108';
+                    $compose['services']['symfony.test']['environment']['TYPESENSE_PROTOCOL'] = 'http';
+                    $compose['services']['symfony.test']['environment']['TYPESENSE_API_KEY'] = 'xyz';
 
-            foreach ($defaults as $default) {
-                $environment = str_replace($default, substr($default, 2), $environment);
+                    break;
+                case 'soketi':
+                    $compose['services']['symfony.test']['environment']['BROADCAST_DRIVER'] = 'pusher';
+                    $compose['services']['symfony.test']['environment']['PUSHER_APP_ID'] = 'app-id';
+                    $compose['services']['symfony.test']['environment']['PUSHER_APP_KEY'] = 'app-key';
+                    $compose['services']['symfony.test']['environment']['PUSHER_APP_SECRET'] = 'app-secret';
+                    $compose['services']['symfony.test']['environment']['PUSHER_HOST'] = 6001;
+                    $compose['services']['symfony.test']['environment']['PUSHER_SCHEME'] = 'http';
+                    $compose['services']['symfony.test']['environment']['VITE_PUSHER_HOST'] = 'localhost';
+
+                    break;
+                case 'mailpit':
+                    $compose['services']['symfony.test']['environment']['MAILER_DSN'] = 'smtp://mailpit:1025';
+                    break;
             }
         }
 
-        if (in_array('mysql', $services)) {
-            $environment = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mysql', $environment);
-            $environment = str_replace('DB_HOST=127.0.0.1', "DB_HOST=mysql", $environment);
-        }elseif (in_array('pgsql', $services)) {
-            $environment = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=pgsql', $environment);
-            $environment = str_replace('DB_HOST=127.0.0.1', "DB_HOST=pgsql", $environment);
-            $environment = str_replace('DB_PORT=3306', "DB_PORT=5432", $environment);
-        } elseif (in_array('mariadb', $services)) {
-            if ($this->symfony->config->has('database.connections.mariadb')) {
-                $environment = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=mariadb', $environment);
-            }
-
-            $environment = str_replace('DB_HOST=127.0.0.1', "DB_HOST=mariadb", $environment);
-        }
-
-        $environment = str_replace('DB_USERNAME=root', "DB_USERNAME=sail", $environment);
-        $environment = preg_replace("/DB_PASSWORD=(.*)/", "DB_PASSWORD=password", $environment);
-
-        if (in_array('memcached', $services)) {
-            $environment = str_replace('MEMCACHED_HOST=127.0.0.1', 'MEMCACHED_HOST=memcached', $environment);
-        }
-
-        if (in_array('redis', $services)) {
-            $environment = str_replace('REDIS_HOST=127.0.0.1', 'REDIS_HOST=redis', $environment);
-        }
-
-        if (in_array('meilisearch', $services)) {
-            $environment .= "\nSCOUT_DRIVER=meilisearch";
-            $environment .= "\nMEILISEARCH_HOST=http://meilisearch:7700\n";
-            $environment .= "\nMEILISEARCH_NO_ANALYTICS=false\n";
-        }
-
-        if (in_array('typesense', $services)) {
-            $environment .= "\nSCOUT_DRIVER=typesense";
-            $environment .= "\nTYPESENSE_HOST=typesense";
-            $environment .= "\nTYPESENSE_PORT=8108";
-            $environment .= "\nTYPESENSE_PROTOCOL=http";
-            $environment .= "\nTYPESENSE_API_KEY=xyz\n";
-        }
-
-        if (in_array('soketi', $services)) {
-            $environment = preg_replace("/^BROADCAST_DRIVER=(.*)/m", "BROADCAST_DRIVER=pusher", $environment);
-            $environment = preg_replace("/^PUSHER_APP_ID=(.*)/m", "PUSHER_APP_ID=app-id", $environment);
-            $environment = preg_replace("/^PUSHER_APP_KEY=(.*)/m", "PUSHER_APP_KEY=app-key", $environment);
-            $environment = preg_replace("/^PUSHER_APP_SECRET=(.*)/m", "PUSHER_APP_SECRET=app-secret", $environment);
-            $environment = preg_replace("/^PUSHER_HOST=(.*)/m", "PUSHER_HOST=soketi", $environment);
-            $environment = preg_replace("/^PUSHER_PORT=(.*)/m", "PUSHER_PORT=6001", $environment);
-            $environment = preg_replace("/^PUSHER_SCHEME=(.*)/m", "PUSHER_SCHEME=http", $environment);
-            $environment = preg_replace("/^VITE_PUSHER_HOST=(.*)/m", "VITE_PUSHER_HOST=localhost", $environment);
-        }
-
-        if (in_array('mailpit', $services)) {
-            $environment = preg_replace("/^MAIL_MAILER=(.*)/m", "MAIL_MAILER=smtp", $environment);
-            $environment = preg_replace("/^MAIL_HOST=(.*)/m", "MAIL_HOST=mailpit", $environment);
-            $environment = preg_replace("/^MAIL_PORT=(.*)/m", "MAIL_PORT=1025", $environment);
-        }
-
-        file_put_contents(realpath($this->projectDirectory .'/.env'), $environment);
+        return $compose;
     }
 
     /**
@@ -259,6 +263,10 @@ trait InteractsWithDockerComposeServices
         file_put_contents(
             $this->projectDirectory . '/.devcontainer/devcontainer.json',
             file_get_contents(__DIR__.'/../../stubs/devcontainer.stub')
+        );
+        file_put_contents(
+            $this->projectDirectory . '/.devcontainer/unit.json',
+            file_get_contents(__DIR__.'/../../stubs/unit.stub')
         );
 
         $environment = file_get_contents($this->projectDirectory . '/.env');

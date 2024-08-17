@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "http": {
+      "header_read_timeout": 30,
+      "body_read_timeout": 30,
+      "send_timeout": 1800,
+      "idle_timeout": 1800,
+      "max_body_size": 52428800
+    }
+  },
+  "listeners": {
+    "*:80": {
+      "pass": "routes"
+    }
+  },
+  "routes": [
+    {
+      "match": {
+        "uri": "/.*"
+      },
+      "action": {
+        "return": 403
+      }
+    },
+    {
+      "match": {
+        "uri": [
+          "*.php",
+          "*.php/*"
+        ]
+      },
+      "action": {
+        "pass": "applications/effiana/direct"
+      }
+    },
+    {
+      "action": {
+        "share": "/var/www/html/public$uri",
+        "fallback": {
+          "pass": "applications/effiana/index"
+        }
+      }
+    }
+  ],
+  "applications": {
+    "effiana": {
+      "limits": {
+        "timeout": 1800,
+        "requests": 10000
+      },
+      "processes": 8,
+      "type": "php",
+      "targets": {
+        "direct": {
+          "root": "/var/www/html/public/"
+        },
+        "index": {
+          "root": "/var/www/html/public/",
+          "script": "index.php"
+        }
+      }
+    }
+  }
+}

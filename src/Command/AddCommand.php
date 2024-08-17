@@ -40,7 +40,6 @@ class AddCommand extends Command
         }
 
         $this->buildDockerCompose($services, $output);
-        $this->replaceEnvVariables($services);
         $this->configurePhpUnit();
 
         $this->prepareInstallation($services, $output);

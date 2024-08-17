@@ -20,7 +20,7 @@ class AddCommandTest extends KernelTestCase
         $commandTester = new CommandTester(new AddCommand(realpath(__DIR__ . '/../')));
 
         $commandTester->execute([
-            'services' => 'redis',
+            'services' => 'redis,mariadb',
         ]);
 
         $this->assertEquals(Command::SUCCESS, $commandTester->getStatusCode());

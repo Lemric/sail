@@ -657,6 +657,18 @@
         <argument>List classes/interfaces you can use for autowiring</argument>
       </call>
     </service>
+    <service id="console.command.dotenv_debug" class="Symfony\Component\Dotenv\Command\DebugCommand">
+      <tag name="console.command"/>
+      <tag name="container.no_preload"/>
+      <argument>test</argument>
+      <argument>/opt/project/tests/Fixtures</argument>
+      <call method="setName">
+        <argument>debug:dotenv</argument>
+      </call>
+      <call method="setDescription">
+        <argument>List all dotenv files with variables and values</argument>
+      </call>
+    </service>
     <service id="console.command.event_dispatcher_debug" class="Symfony\Bundle\FrameworkBundle\Command\EventDispatcherDebugCommand">
       <tag name="console.command"/>
       <tag name="container.no_preload"/>
@@ -1027,6 +1039,7 @@
         <argument key="console.command.container_debug" type="service_closure" id="console.command.container_debug" on-invalid="ignore_uninitialized"/>
         <argument key="console.command.container_lint" type="service_closure" id="console.command.container_lint" on-invalid="ignore_uninitialized"/>
         <argument key="console.command.debug_autowiring" type="service_closure" id="console.command.debug_autowiring" on-invalid="ignore_uninitialized"/>
+        <argument key="console.command.dotenv_debug" type="service_closure" id="console.command.dotenv_debug" on-invalid="ignore_uninitialized"/>
         <argument key="console.command.event_dispatcher_debug" type="service_closure" id="console.command.event_dispatcher_debug" on-invalid="ignore_uninitialized"/>
         <argument key="console.command.yaml_lint" type="service_closure" id="console.command.yaml_lint" on-invalid="ignore_uninitialized"/>
         <argument key="console.command.secrets_set" type="service_closure" id="console.command.secrets_set" on-invalid="ignore_uninitialized"/>
@@ -1299,6 +1312,13 @@
       <argument>false</argument>
       <argument type="service_closure" id="console.command.debug_autowiring"/>
     </service>
+    <service id=".console.command.dotenv_debug.lazy" class="Symfony\Component\Console\Command\LazyCommand">
+      <argument>debug:dotenv</argument>
+      <argument type="collection"/>
+      <argument>List all dotenv files with variables and values</argument>
+      <argument>false</argument>
+      <argument type="service_closure" id="console.command.dotenv_debug"/>
+    </service>
     <service id=".console.command.event_dispatcher_debug.lazy" class="Symfony\Component\Console\Command\LazyCommand">
       <argument>debug:event-dispatcher</argument>
       <argument type="collection"/>
@@ -1364,7 +1384,7 @@
     </service>
     <service id="console.command_loader" class="Symfony\Component\Console\CommandLoader\ContainerCommandLoader" public="true">
       <tag name="container.no_preload"/>
-      <argument type="service" id=".service_locator.Y1gxYqZ"/>
+      <argument type="service" id=".service_locator.GRl76AQ"/>
       <argument type="collection">
         <argument key="about">console.command.about</argument>
         <argument key="assets:install">console.command.assets_install</argument>
@@ -1380,6 +1400,7 @@
         <argument key="debug:container">console.command.container_debug</argument>
         <argument key="lint:container">console.command.container_lint</argument>
         <argument key="debug:autowiring">console.command.debug_autowiring</argument>
+        <argument key="debug:dotenv">console.command.dotenv_debug</argument>
         <argument key="debug:event-dispatcher">console.command.event_dispatcher_debug</argument>
         <argument key="lint:yaml">console.command.yaml_lint</argument>
         <argument key="secrets:set">console.command.secrets_set</argument>
@@ -1391,7 +1412,7 @@
         <argument key="secrets:encrypt-from-local">console.command.secrets_encrypt_from_local</argument>
       </argument>
     </service>
-    <service id=".service_locator.Y1gxYqZ" class="Symfony\Component\DependencyInjection\ServiceLocator">
+    <service id=".service_locator.GRl76AQ" class="Symfony\Component\DependencyInjection\ServiceLocator">
       <tag name="container.service_locator"/>
       <argument type="collection">
         <argument key="console.command.about" type="service_closure" id=".console.command.about.lazy"/>
@@ -1408,6 +1429,7 @@
         <argument key="console.command.container_debug" type="service_closure" id=".console.command.container_debug.lazy"/>
         <argument key="console.command.container_lint" type="service_closure" id=".console.command.container_lint.lazy"/>
         <argument key="console.command.debug_autowiring" type="service_closure" id=".console.command.debug_autowiring.lazy"/>
+        <argument key="console.command.dotenv_debug" type="service_closure" id=".console.command.dotenv_debug.lazy"/>
         <argument key="console.command.event_dispatcher_debug" type="service_closure" id=".console.command.event_dispatcher_debug.lazy"/>
         <argument key="console.command.yaml_lint" type="service_closure" id=".console.command.yaml_lint.lazy"/>
         <argument key="console.command.secrets_set" type="service_closure" id=".console.command.secrets_set.lazy"/>

@@ -14,6 +14,7 @@ services:
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
+            - '.devcontainer/unit.json:/var/lib/unit/conf.json'
         networks:
             - sail
 networks:

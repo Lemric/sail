@@ -46,7 +46,7 @@ class InstallCommandTest extends KernelTestCase
         $commandTester = new CommandTester(new InstallCommand(realpath(__DIR__ . '/../')));
 
         $commandTester->execute([
-            '--with' => 'redis',
+            '--with' => 'redis,pgsql',
             '--devcontainer' => true,
         ]);
 
