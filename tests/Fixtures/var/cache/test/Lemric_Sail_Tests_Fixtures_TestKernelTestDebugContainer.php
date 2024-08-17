@@ -16,7 +16,7 @@ if (!\class_exists(Lemric_Sail_Tests_Fixtures_TestKernelTestDebugContainer::clas
 
 return new \Container9FxPh29\Lemric_Sail_Tests_Fixtures_TestKernelTestDebugContainer([
     'container.build_hash' => '9FxPh29',
-    'container.build_id' => '12039d07',
-    'container.build_time' => 1723889806,
+    'container.build_id' => '36b844ef',
+    'container.build_time' => 1723895872,
     'container.runtime_mode' => \in_array(\PHP_SAPI, ['cli', 'phpdbg', 'embed'], true) ? 'web=0' : 'web=1',
 ], __DIR__.\DIRECTORY_SEPARATOR.'Container9FxPh29');
