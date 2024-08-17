@@ -45,16 +45,23 @@ trait InteractsWithDockerComposeServices
      */
     protected function gatherServicesInteractively(InputInterface $input, OutputInterface $output): array
     {
+        $composePath = $this->projectDirectory . '/docker-compose.yml';
+        $compose = file_exists($composePath)
+            ? Yaml::parseFile($composePath)
+            : ['services' => ['pgsql' => true]];
+        $default = array_filter(array_keys($compose['services']), function($service) {
+            return $service !== 'symfony.test';
+        });
         if (function_exists('\Laravel\Prompts\multiselect')) {
             return \Laravel\Prompts\multiselect(
                 label: 'Which services would you like to install?',
                 options: $this->services,
-                default: ['mysql'],
+                default: $default,
             );
         }
 
         $io = new SymfonyStyle($input, $output);
-        return $io->choice('Which services would you like to install?', $this->services);
+        return $io->choice('Which services would you like to install?', $this->services, $default);
     }
 
     /**
@@ -66,7 +73,7 @@ trait InteractsWithDockerComposeServices
      */
     protected function buildDockerCompose(array $services, OutputInterface $output): void
     {
-        $composePath = __DIR__ . '/docker-compose.yml';
+        $composePath = $this->projectDirectory . '/docker-compose.yml';
         $compose = file_exists($composePath)
             ? Yaml::parseFile($composePath)
             : Yaml::parse(file_get_contents(__DIR__ . '/../../stubs/docker-compose.stub'));
