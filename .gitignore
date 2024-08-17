@@ -1,0 +1,9 @@
+/.idea/
+/LemricEnv.iml
+vendor/
+/composer.lock
+*.cache
+tests/phpunit.xml
+tests/docker-compose.yml
+tests/.devcontainer
+tests/Fixtures/cache
