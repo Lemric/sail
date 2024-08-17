@@ -68,9 +68,9 @@ class InstallCommand extends Command
         if (in_array('mysql', $services) ||
             in_array('mariadb', $services) ||
             in_array('pgsql', $services)) {
-            $output->writeln('<warn>A database service was installed. Run "artisan migrate" to prepare your database:</warn>');
+            $output->writeln('<warn>A database service was installed. Run "doctrine migrate" to prepare your database:</warn>');
 
-            $output->writeln('<fg=gray>➜</> <options=bold>bin/console doctrine:migrations:migrate</>');
+            $output->writeln('<fg=gray>➜</> <options=bold>./vendor/bin/lemric symfony doctrine:migrations:migrate</>');
         }
 
         $output->writeln('');

@@ -94,25 +94,27 @@ trait InteractsWithDockerComposeServices
             }, $compose['services']['symfony.test']['depends_on']);
         }
 
+        $newServices = $services;
         // Add the services to the docker-compose.yml...
-        $services = array_filter($services, function ($service) use ($compose) {
+        $newServices = array_filter($newServices, function ($service) use ($compose) {
             return ! array_key_exists($service, $compose['services'] ?? []);
         });
 
-        $services = array_map(function ($service) use (&$compose) {
+        array_map(function ($service) use (&$compose) {
             $compose['services'][$service] = Yaml::parseFile(__DIR__ . "/../../stubs/{$service}.stub")[$service];
-        }, $services);
+        }, $newServices);
 
-        $services = array_filter($services,function ($service) {
+        $newServices = $services;
+        $newServices = array_filter($newServices,function ($service) {
             return in_array($service, ['mysql', 'pgsql', 'mariadb', 'redis', 'meilisearch', 'typesense', 'minio']);
         });
-        $services = array_filter($services,function ($service) use ($compose) {
+        $newServices = array_filter($newServices,function ($service) use ($compose) {
             return ! array_key_exists($service, $compose['volumes'] ?? []);
         });
 
-        $services = array_map(function ($service) use (&$compose) {
+        array_map(function ($service) use (&$compose) {
             $compose['volumes']["sail-{$service}"] = ['driver' => 'local'];
-        }, $services);
+        }, $newServices);
 
         // If the list of volumes is empty, we can remove it...
         if (empty($compose['volumes'])) {
