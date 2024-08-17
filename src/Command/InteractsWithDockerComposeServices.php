@@ -271,12 +271,12 @@ trait InteractsWithDockerComposeServices
 
         if (count($services) > 0) {
             $this->runCommands([
-                './vendor/bin/sail pull '.implode(' ', $services),
+                './vendor/bin/lemric pull '.implode(' ', $services),
             ], $output);
         }
 
         $this->runCommands([
-            './vendor/bin/sail build',
+            './vendor/bin/lemric build',
         ], $output);
     }
 

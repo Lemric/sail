@@ -63,7 +63,7 @@ class InstallCommand extends Command
         $output->writeln('');
         $output->writeln('<info>Env scaffolding installed successfully. You may run your Docker containers using Env\'s "up" command.</info>');
 
-        $output->writeln('<fg=gray>➜</> <options=bold>./vendor/bin/sail up</>');
+        $output->writeln('<fg=gray>➜</> <options=bold>./vendor/bin/lemric up</>');
 
         if (in_array('mysql', $services) ||
             in_array('mariadb', $services) ||
