@@ -2,7 +2,9 @@
 
 namespace Lemric\Sail\Command;
 
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 
@@ -32,14 +34,16 @@ trait InteractsWithDockerComposeServices
      *
      * @var string[]
      */
-    protected array $defaultServices = ['mysql', 'redis', 'selenium', 'mailpit'];
+    protected array $defaultServices = ['pgsql', 'redis', 'mailpit'];
 
     /**
      * Gather the desired Sail services using an interactive prompt.
      *
+     * @param InputInterface $input
+     * @param OutputInterface $output
      * @return array
      */
-    protected function gatherServicesInteractively(): array
+    protected function gatherServicesInteractively(InputInterface $input, OutputInterface $output): array
     {
         if (function_exists('\Laravel\Prompts\multiselect')) {
             return \Laravel\Prompts\multiselect(
@@ -49,13 +53,15 @@ trait InteractsWithDockerComposeServices
             );
         }
 
-        return $this->choice('Which services would you like to install?', $this->services, 0, null, true);
+        $io = new SymfonyStyle($input, $output);
+        return $io->choice('Which services would you like to install?', $this->services);
     }
 
     /**
      * Build the Docker Compose file.
      *
-     * @param  array  $services
+     * @param array $services
+     * @param OutputInterface $output
      * @return void
      */
     protected function buildDockerCompose(array $services, OutputInterface $output): void
@@ -210,7 +216,6 @@ trait InteractsWithDockerComposeServices
     /**
      * Configure PHPUnit to use the dedicated testing database.
      *
-     * @param string $this->projectDirectory
      * @return void
      */
     protected function configurePhpUnit(): void

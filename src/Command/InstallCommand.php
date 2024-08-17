@@ -12,9 +12,9 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class InstallCommand extends Command
 {
     use InteractsWithDockerComposeServices;
-    
-    public function __construct(#[Autowire('%kernel.project_dir%')] 
-                                private string $projectDirectory, 
+
+    public function __construct(#[Autowire('%kernel.project_dir%')]
+                                private string $projectDirectory,
                                 ?string $name = null)
     {
         parent::__construct($name);
@@ -36,12 +36,12 @@ class InstallCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        if($input->hasOption('with')) {
+        if(!empty($input->getOption('with'))) {
             $services = $input->getOption('with') == 'none' ? [] : explode(',', $input->getOption('with'));
         } elseif (!$input->isInteractive()) {
             $services = $this->defaultServices;
         } else {
-            $services = $this->gatherServicesInteractively();
+            $services = $this->gatherServicesInteractively($input, $output);
         }
 
         if ($invalidServices = array_diff($services, $this->services)) {

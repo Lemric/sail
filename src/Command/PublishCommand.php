@@ -6,7 +6,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-#[AsCommand(name: 'env:publish', description: 'Publish the Lemric Env Docker files')]
+#[AsCommand(name: 'sail:publish', description: 'Publish the Lemric Env Docker files')]
 class PublishCommand extends Command
 {
     public function __construct(#[Autowire('%kernel.project_dir%')]
