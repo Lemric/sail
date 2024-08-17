@@ -23,7 +23,7 @@ class InstallCommand extends Command
     {
         $this
             ->addOption('with', 'w', InputOption::VALUE_OPTIONAL, 'The services that should be included in the installation')
-            ->addOption('devcontainer', null, InputOption::VALUE_OPTIONAL, 'Create a .devcontainer configuration directory')
+            ->addOption('devcontainer', null, InputOption::VALUE_OPTIONAL, 'Create a .devcontainer configuration directory', true)
         ;
     }
 
@@ -53,7 +53,7 @@ class InstallCommand extends Command
         $this->buildDockerCompose($services, $output);
         $this->configurePhpUnit();
 
-        if ($input->hasOption('devcontainer')) {
+        if (!empty($input->getOption('devcontainer'))) {
             $this->installDevContainer();
         }
 
